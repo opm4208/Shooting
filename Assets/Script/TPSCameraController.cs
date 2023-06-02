@@ -11,6 +11,7 @@ public class TPSCameraController : MonoBehaviour
     [SerializeField] Transform cameraRoot2;
     [SerializeField] float lookDistance;
     [SerializeField] CinemachineVirtualCamera camera;
+    [SerializeField] Transform aimTarget;
 
     private Vector2 lookDelta;
     private float xRotation;
@@ -31,14 +32,20 @@ public class TPSCameraController : MonoBehaviour
     private void Update()
     {
 
-        Vector3 lookPoint = Camera.main.transform.position + Camera.main.transform.forward * lookDistance;
-        lookPoint.y = transform.position.y;
-        transform.LookAt(lookPoint);
+        Rotate();
     }
 
     private void LateUpdate()
     {
         Look();
+    }
+
+    private void Rotate()
+    {
+        Vector3 lookPoint = Camera.main.transform.position + Camera.main.transform.forward * lookDistance;
+        aimTarget.position = lookPoint;
+        lookPoint.y = 0;
+        transform.LookAt(lookPoint);
     }
     private void Look()
     {
