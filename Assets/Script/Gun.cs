@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class Gun : MonoBehaviour
 {
-    [SerializeField] ParticleSystem hitEffect;
     [SerializeField] ParticleSystem muzzleEffect;
     [SerializeField] TrailRenderer bulletTrail;
     [SerializeField] float bulletSpeed;
@@ -19,9 +18,13 @@ public class Gun : MonoBehaviour
         if(Physics.Raycast(Camera.main.transform.position,Camera.main.transform.forward,out hit, maxDistance))
         {
             IHittable hittable = hit.transform.GetComponent<IHittable>();
-            ParticleSystem effect = Instantiate(hitEffect, hit.point, Quaternion.LookRotation(hit.normal));
+
+            //ParticleSystem hitEffect = GameManager.Resource.Load<ParticleSystem>("Prefab/HitEffect");
+            ParticleSystem effect = GameManager.Resource.Instantiate<ParticleSystem>("Prefab/HitEffect", hit.point, Quaternion.LookRotation(hit.normal),false);
+            //GameObject effect = GameManager.Pool.Get(hitEffect);
             effect.transform.parent = hit.transform;
-            Destroy(effect.gameObject, 3f);
+            //Destroy(effect.gameObject, 3f);
+            StartCoroutine(ReleaseRoutine(effect.gameObject));
 
             //TrailRenderer trail = Instantiate(bulletTrail, muzzleEffect.transform.position, Quaternion.identity);
             StartCoroutine(TrailRoutine( muzzleEffect.transform.position, hit.point));
@@ -36,9 +39,17 @@ public class Gun : MonoBehaviour
         }
     }
 
+    IEnumerator ReleaseRoutine(GameObject effect)
+    {
+        yield return new WaitForSeconds(3f);
+        GameManager.Pool.Release(effect);
+    }
+
     IEnumerator TrailRoutine(Vector3 startPoint, Vector3 endPoint)
     {
-        TrailRenderer trail = Instantiate(bulletTrail, muzzleEffect.transform.position, Quaternion.identity);
+        //TrailRenderer trail = Instantiate(bulletTrail, muzzleEffect.transform.position, Quaternion.identity);
+        TrailRenderer trail = GameManager.Resource.Instantiate(bulletTrail,startPoint, Quaternion.identity, true);
+        trail.Clear();
         float totalTime = Vector2.Distance(startPoint, endPoint) / bulletSpeed;
 
         float rate = 0;
@@ -49,7 +60,8 @@ public class Gun : MonoBehaviour
 
             yield return null;
         }
-        Destroy(trail);
+        GameManager.Resource.Destroy(trail.gameObject);
+
     }
     
 
